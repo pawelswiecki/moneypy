@@ -19,13 +19,13 @@ class Money:
         self._amount: Decimal = self._to_decimal(amount)
         self._currency: str = currency
 
-    # getters
+    # public properties
     @property
-    def amount(self):
+    def amount(self) -> Decimal:
         return self._amount
 
     @property
-    def currency(self):
+    def currency(self) -> str:
         return self._currency
 
     # to Decimal conversion
@@ -43,29 +43,45 @@ class Money:
         return f'{self._amount} {self._currency}'
 
     # operators
-    def __bool__(self):
+    def currencies_equal_or_raise(self, cur1, cur2, op_name):
+        if cur1 != cur2:
+            raise IncompatibleCurrencyError(INCOMPATIBLE_CURRENCY_MESSAGE(
+                c1=cur1, c2=cur2, op=op_name)
+            )
+
+    def __bool__(self) -> bool:
         return bool(self._amount)
 
-    def __pos__(self):
+    def __pos__(self) -> 'Money':
         return self
 
-    def __neg__(self):
+    def __neg__(self) -> 'Money':
         return Money(-self._amount, self._currency)
 
-    def __add__(self, other: 'Money'):
+    def __add__(self, other: 'Money') -> 'Money':
         if not isinstance(other, Money):
             raise TypeError(
-                TYPE_ERROR_MESSAGE(self=Money.__name__, other=type(other).__name__)
-            )
-        if self._currency != other._currency:
-            raise IncompatibleCurrencyError(
-                INCOMPATIBLE_CURRENCY_MESSAGE(
-                    c1=self._currency,
-                    c2=other._currency,
-                    op='added',
-                )
-            )
+                TYPE_ERROR_MESSAGE(self=Money.__name__, other=type(other).__name__))
+
+        self.currencies_equal_or_raise(
+            self._currency, other._currency, op_name='add or subtract')
+
         return Money(self._amount + other._amount, self._currency)
 
-    def __sub__(self, other: 'Money'):
+    def __sub__(self, other: 'Money') -> 'Money':
         return self + (-other)
+
+    def __eq__(self, other: 'Money') -> bool:
+        self.currencies_equal_or_raise(
+            self._currency, other._currency, op_name='compare')
+        return self._amount == other._amount
+
+    def __lt__(self, other: 'Money') -> bool:
+        self.currencies_equal_or_raise(
+            self._currency, other._currency, op_name='compare')
+        return self._amount < other._amount
+
+    def __le__(self, other: 'Money') -> bool:
+        self.currencies_equal_or_raise(
+            self._currency, other._currency, op_name='compare')
+        return self._amount <= other._amount

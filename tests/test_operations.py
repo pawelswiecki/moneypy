@@ -47,3 +47,19 @@ def test_money_substract(amount1, amount2, expected):
     money2 = Money(amount2, 'EUR')
     assert (money1 - money2).amount == expected
     assert (money2 - money1).amount == -expected
+
+def test_money_comparison_operators():
+    money100 = Money(100, 'EUR')
+    money200 = Money(200, 'EUR')
+
+    assert money100 < money200
+    assert money200 > money100
+
+    assert money100 <= money200
+    assert money100 <= money100
+    assert money200 >= money100
+    assert money200 >= money200
+
+    assert money100 == money100
+    assert money100 != money200
+    assert money200 != money100
