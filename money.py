@@ -1,8 +1,7 @@
 from decimal import Decimal
 from typing import Union
 
-from messages import TYPE_ERROR_MESSAGE, INCOMPATIBLE_CURRENCY_MESSAGE
-from exceptions import IncompatibleCurrencyError
+from decorators import validate_other_is_money, validate_same_currencies
 
 
 PRECISION = '.0001'
@@ -43,12 +42,6 @@ class Money:
         return f'{self._amount} {self._currency}'
 
     # operators
-    def currencies_equal_or_raise(self, cur1, cur2, op_name):
-        if cur1 != cur2:
-            raise IncompatibleCurrencyError(INCOMPATIBLE_CURRENCY_MESSAGE(
-                c1=cur1, c2=cur2, op=op_name)
-            )
-
     def __bool__(self) -> bool:
         return bool(self._amount)
 
@@ -58,30 +51,42 @@ class Money:
     def __neg__(self) -> 'Money':
         return Money(-self._amount, self._currency)
 
+    @validate_other_is_money('add')
+    @validate_same_currencies('add')
     def __add__(self, other: 'Money') -> 'Money':
-        if not isinstance(other, Money):
-            raise TypeError(
-                TYPE_ERROR_MESSAGE(self=Money.__name__, other=type(other).__name__))
-
-        self.currencies_equal_or_raise(
-            self._currency, other._currency, op_name='add or subtract')
-
         return Money(self._amount + other._amount, self._currency)
 
+    @validate_other_is_money('subtract')
+    @validate_same_currencies('subtract')
     def __sub__(self, other: 'Money') -> 'Money':
         return self + (-other)
 
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
     def __eq__(self, other: 'Money') -> bool:
-        self.currencies_equal_or_raise(
-            self._currency, other._currency, op_name='compare')
         return self._amount == other._amount
 
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
+    def __ne__(self, other: 'Money') -> bool:
+        return self._amount != other._amount
+
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
     def __lt__(self, other: 'Money') -> bool:
-        self.currencies_equal_or_raise(
-            self._currency, other._currency, op_name='compare')
         return self._amount < other._amount
 
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
     def __le__(self, other: 'Money') -> bool:
-        self.currencies_equal_or_raise(
-            self._currency, other._currency, op_name='compare')
         return self._amount <= other._amount
+
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
+    def __gt__(self, other: 'Money') -> bool:
+        return self._amount > other._amount
+
+    @validate_other_is_money('compare')
+    @validate_same_currencies('compare')
+    def __ge__(self, other: 'Money') -> bool:
+        return self._amount >= other._amount
