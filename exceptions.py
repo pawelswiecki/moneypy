@@ -1,0 +1,3 @@
+
+class IncompatibleCurrencyError(Exception):
+    pass
