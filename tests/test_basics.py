@@ -29,8 +29,8 @@ def test_money_amount_round(amount, expected_amount):
 
 
 @pytest.mark.parametrize('amount, currency, expected', [
-    ('100.1', 'EUR', 'Money(amount=100.1000, currency=EUR)'),
-    ('99.1234', 'ABC', 'Money(amount=99.1234, currency=ABC)'),
+    ('100.1', 'EUR', "Money(amount='100.1000', currency='EUR')"),
+    ('99.1234', 'ABC', "Money(amount='99.1234', currency='ABC')"),
 ])
 def test_money_repr(amount, currency, expected):
     assert repr(Money(amount, currency)) == expected

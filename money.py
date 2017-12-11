@@ -36,7 +36,7 @@ class Money:
 
     # string representation
     def __repr__(self):
-        return f'Money(amount={self._amount}, currency={self._currency})'
+        return f"Money(amount='{self._amount}', currency='{self._currency}')"
 
     def __str__(self):
         return f'{self._amount} {self._currency}'
