@@ -11,13 +11,9 @@ ConvToDecimal = Union[Decimal, int, float, str]
 
 class Money:
 
-    def __init__(
-            self,
-            amount: ConvToDecimal,
-            currency: str
-    ) -> None:
+    def __init__(self, amount: ConvToDecimal, currency: str) -> None:
         self._amount: Decimal = self._to_decimal(amount)
-        self._currency_code: str = self._valudate_currency(currency)
+        self._currency_code: str = self._validate_currency_code(currency)
 
     # public properties
     @property
@@ -36,7 +32,7 @@ class Money:
         return amount.quantize(Decimal(PRECISION))
 
     # currency code validation
-    def _valudate_currency(self, currency_code):
+    def _validate_currency_code(self, currency_code) -> str:
         if not isinstance(currency_code, str):
             raise TypeError(NON_STRING_CURRENCY_MESSAGE(
                 type(currency_code).__name__))
