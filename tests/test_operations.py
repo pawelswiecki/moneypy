@@ -39,7 +39,7 @@ def test_money_add_should_work_between_money_instances_of_the_same_currency(amou
     assert (money1 + money2).amount == expected
 
 
-def test_money_add_should_not_work_between_money_instances_of_different_currencies():  # noqa: E501
+def test_money_add_should_not_work_between_money_instances_of_different_currencies():
     money1 = Money('10', 'EUR')
     money2 = Money('20', 'USD')
     with pytest.raises(IncompatibleCurrencyError):
@@ -49,7 +49,7 @@ def test_money_add_should_not_work_between_money_instances_of_different_currenci
 @pytest.mark.parametrize('non_money_object', [
     10, 10.0, '10', Decimal('10'), [10], object(), None, False,
 ])
-def test_money_add_should_not_work_with_instances_of_other_types(non_money_object):  # noqa: E501
+def test_money_add_should_not_work_with_instances_of_other_types(non_money_object):
     money = Money('10', 'EUR')
     with pytest.raises(TypeError):
         money + non_money_object
@@ -70,7 +70,7 @@ def test_money_subtract_should_work_between_money_instances_of_the_same_currency
     assert (money2 - money1).amount == -expected
 
 
-def test_money_subtract_should_not_work_between_money_instances_of_different_currencies():  # noqa: E501
+def test_money_subtract_should_not_work_between_money_instances_of_different_currencies():
     money1 = Money('10', 'EUR')
     money2 = Money('20', 'USD')
     with pytest.raises(IncompatibleCurrencyError):
@@ -80,7 +80,7 @@ def test_money_subtract_should_not_work_between_money_instances_of_different_cur
 @pytest.mark.parametrize('non_money_object', [
     10, 10.0, '10', Decimal('10'), [10], object(), None, False,
 ])
-def test_money_subtract_should_not_work_with_instances_of_other_types(non_money_object):  # noqa: E501
+def test_money_subtract_should_not_work_with_instances_of_other_types(non_money_object):
     money = Money('10', 'USD')
     with pytest.raises(TypeError):
         money - non_money_object

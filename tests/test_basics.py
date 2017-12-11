@@ -48,7 +48,7 @@ def test_money_str(amount, currency, expected):
 @pytest.mark.parametrize('non_string_object', [
     10, 10.0, Decimal('10'), [10], {}, object(), None, False,
 ])
-def test_currency_code_validation_should_raise_error_on_non_string(non_string_object):  # noqa: E501
+def test_currency_code_validation_should_raise_error_on_non_string(non_string_object):
     with pytest.raises(TypeError):
         Money(amount=1, currency=non_string_object)
 
@@ -57,6 +57,6 @@ def test_currency_code_validation_should_raise_error_on_non_string(non_string_ob
     '', '   ', '1', '123', 'qwerty', 'usd', 'USD2',
     'Bob', 'PLn', 'USDUSD', 'CH ', 'USD ', 'EU2',
 ])
-def test_currency_code_validation_should_raise_error_on_malformatted_code(bad_code):  # noqa: E501
+def test_currency_code_validation_should_raise_error_on_malformatted_code(bad_code):
     with pytest.raises(MalformattedCurrencyCodeError):
         Money(amount=1, currency=bad_code)
