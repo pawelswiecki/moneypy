@@ -38,7 +38,8 @@ class Money:
     # currency code validation
     def _valudate_currency(self, currency_code):
         if not isinstance(currency_code, str):
-            raise TypeError(NON_STRING_CURRENCY_MESSAGE(type(currency_code)))
+            raise TypeError(NON_STRING_CURRENCY_MESSAGE(
+                type(currency_code).__name__))
 
         is_code_malformed = (
             not currency_code.isalpha()
@@ -46,7 +47,8 @@ class Money:
             or len(currency_code) != 3
         )
         if is_code_malformed:
-            raise MalformattedCurrencyCodeError(MALFORMATTED_CURRENCY_CODE_MESSAGE)
+            raise MalformattedCurrencyCodeError(
+                MALFORMATTED_CURRENCY_CODE_MESSAGE(code=currency_code))
 
         return currency_code
 
