@@ -1,25 +1,31 @@
+from collections import Iterable
 from functools import wraps
-
 
 from exceptions import IncompatibleCurrencyError
 from messages import TYPE_ERROR_MESSAGE, INCOMPATIBLE_CURRENCY_MESSAGE
 
 
-def validate_other_is_money(op_name):
-    def _validate_other_is_money(function):
+def validate_other_is(others_type, op_name, add_info=''):
+    if isinstance(others_type, Iterable):
+        others_types = tuple(others_type)
+    else:
+        others_types = tuple((others_type,))
+
+    def _validate_other_is(function):
         @wraps(function)
         def func_wrapper(self_object, other_object):
-            if not isinstance(other_object, type(self_object)):
+            if not isinstance(other_object, others_types):
                 raise TypeError(
                     TYPE_ERROR_MESSAGE(
                         op_name=op_name,
                         self=type(self_object).__name__,
                         other=type(other_object).__name__,
+                        additional_info=add_info,
                     )
                 )
             return function(self_object, other_object)
         return func_wrapper
-    return _validate_other_is_money
+    return _validate_other_is
 
 
 def validate_same_currencies(op_name):

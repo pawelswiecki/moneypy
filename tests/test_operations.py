@@ -117,3 +117,41 @@ def test_money_comparison_operators_should_not_work_with_instances_of_other_type
 
     with pytest.raises(TypeError):
         operator(money, non_money_object)
+
+
+@pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
+    (10, 0, Decimal(0)),
+    (10, 1, Decimal(10)),
+    (10, 10, Decimal(100)),
+    ('10.01', 10, Decimal('100.1')),
+    ('9999.9999', 2, Decimal('19999.9998')),
+    (10, Decimal(0), Decimal(0)),
+    (10, Decimal(1), Decimal(10)),
+])
+def test_multiplying_money_instance_by_int_or_decimal_should_work(money_amount, multiplier, expected_amount):  # noqa: E501
+    assert Money(money_amount, 'EUR') * multiplier == Money(expected_amount, 'EUR')
+    assert multiplier * Money(money_amount, 'EUR') == Money(expected_amount, 'EUR')
+
+
+@pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
+    (Decimal(10), Decimal('10.1111'), Decimal('101.1110')),
+    (Decimal(10), Decimal('10.111111'), Decimal('101.1111')),
+    (Decimal('10.1234'), Decimal('10.1234'), Decimal('102.4832')),
+    (Decimal('9999.9999'), Decimal('1.0'), Decimal('9999.9999')),
+    (Decimal('9999.9999'), Decimal('0.1'), Decimal('1000.0000')),
+    (Decimal('9999.9999'), Decimal('0.00001'), Decimal('0.1000')),
+])
+def test_multiplying_money_instance_by_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
+    assert Money(money_amount, 'GBP') * multiplier == Money(expected_amount, 'GBP')
+    assert multiplier * Money(money_amount, 'GBP') == Money(expected_amount, 'GBP')
+
+
+@pytest.mark.parametrize('other', [
+    10.0, 10.1123455, [], {}, object(), None, '10', 'Bob',
+])
+def test_money_multiplting_should_not_work_with_instances_of_other_types_than_int_and_decimal(other):  # noqa: E501
+    with pytest.raises(TypeError):
+        Money(1, 'USD') * other
+
+    with pytest.raises(TypeError):
+        other * Money(1, 'USD')

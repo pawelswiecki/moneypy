@@ -1,15 +1,23 @@
 from decimal import Decimal
 from typing import Union
 
-from decorators import validate_other_is_money, validate_same_currencies
+from decorators import validate_other_is, validate_same_currencies
 from exceptions import MalformattedCurrencyCodeError
-from messages import NON_STRING_CURRENCY_MESSAGE, MALFORMATTED_CURRENCY_CODE_MESSAGE
+from messages import (
+    CONVERT_INFO,
+    MALFORMATTED_CURRENCY_CODE_MESSAGE,
+    NON_STRING_CURRENCY_MESSAGE,
+)
 
 PRECISION = '.0001'
 ConvToDecimal = Union[Decimal, int, float, str]
 
 
-class Money:
+class BaseMoney:
+    pass
+
+
+class Money(BaseMoney):
 
     def __init__(self, amount: ConvToDecimal, currency: str) -> None:
         self._amount: Decimal = self._to_decimal(amount)
@@ -65,42 +73,50 @@ class Money:
     def __neg__(self) -> 'Money':
         return Money(-self._amount, self._currency_code)
 
-    @validate_other_is_money('add')
+    @validate_other_is(BaseMoney, 'add')
     @validate_same_currencies('add')
     def __add__(self, other: 'Money') -> 'Money':
         return Money(self._amount + other._amount, self._currency_code)
 
-    @validate_other_is_money('subtract')
+    @validate_other_is(BaseMoney, 'subtract')
     @validate_same_currencies('subtract')
     def __sub__(self, other: 'Money') -> 'Money':
         return self + (-other)
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __eq__(self, other: 'Money') -> bool:
         return self._amount == other._amount
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __ne__(self, other: 'Money') -> bool:
         return self._amount != other._amount
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __lt__(self, other: 'Money') -> bool:
         return self._amount < other._amount
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __le__(self, other: 'Money') -> bool:
         return self._amount <= other._amount
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __gt__(self, other: 'Money') -> bool:
         return self._amount > other._amount
 
-    @validate_other_is_money('compare')
+    @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __ge__(self, other: 'Money') -> bool:
         return self._amount >= other._amount
+
+    @validate_other_is([int, Decimal], 'multiply', CONVERT_INFO)
+    def __mul__(self, other: Union[int, Decimal]) -> 'Money':
+        amount = self._amount * other
+        return Money(amount, self._currency_code)
+
+    def __rmul__(self, other: Union[int, Decimal]) -> 'Money':
+        return self.__mul__(other)
