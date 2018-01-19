@@ -63,10 +63,14 @@ class Money(BaseMoney):
     def __str__(self):
         return f'{self._amount} {self._currency_code}'
 
-    # operators
+    # converters
     def __bool__(self) -> bool:
         return bool(self._amount)
 
+    def __hash__(self) -> int:
+        return hash((self.amount, self.currency))
+
+    # operators
     def __pos__(self) -> 'Money':
         return self
 

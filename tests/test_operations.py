@@ -16,6 +16,32 @@ def test_money_bool(amount, expected):
     assert bool(Money(amount=amount, currency='XYZ')) == expected
 
 
+@pytest.mark.parametrize('amount, currency', [
+    (10, 'GBP'),
+    (999, 'USD'),
+    (42, 'EUR'),
+])
+def test_money_hash__two_identical_instances_of_money_should_have_the_same_hash(amount, currency):  # noqa: E501
+    instance1 = Money(amount=amount, currency=currency)
+    instance2 = Money(amount=amount, currency=currency)
+
+    assert hash(instance1) == hash(instance2)
+
+    # checking hashing invariant
+    assert instance1 == instance2
+
+
+@pytest.mark.parametrize('money1, money2', [
+    (Money('10', 'ABC'), Money('10', 'ABX')),
+    (Money('10.0000', 'GBP'), Money('10.0001', 'GBP')),
+    (Money('10', 'GBP'), Money('-10', 'GBP')),
+])
+def test_money_hash__two_different_instances_of_money_should_have_different_hashes(money1, money2):  # noqa: E501
+    assert (
+        hash(money1) != hash(money2)
+    )
+
+
 def test_money_neg():
     assert -Money(1, 'PLN').amount == Decimal('-1')
     assert -Money(-1, 'PLN').amount == Decimal('1')
