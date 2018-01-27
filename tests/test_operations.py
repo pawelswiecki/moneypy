@@ -162,6 +162,89 @@ def test_multiplying_with_factors_of_money_and_not_int_or_decimal_should_not_wor
         other * Money(1, 'USD')
 
 
+# ---------------------------------------- divide ----------------------------------------
+@pytest.mark.parametrize('to_type', [int, Decimal])
+@pytest.mark.parametrize('dividends_amount, divisor, expected_amount', [
+    (10, 10, Decimal(1)),
+    (10, 1, Decimal(10)),
+    (10, 5, Decimal(2)),
+    (30, 3, Decimal(10)),
+    ('100.1', 10, Decimal('10.01')),
+    ('5000.2', 2, Decimal('2500.1')),
+    ('10', 3, Decimal('3.3333')),
+    ('10', 6, Decimal('1.6667')),
+    ('10.0005', 6, Decimal('1.6668')),
+    ('10.0004', 6, Decimal('1.6667')),
+])
+def test_true_dividing_money_by_int_or_decimal_should_work_with_proper_rounding(to_type, dividends_amount, divisor, expected_amount):  # noqa: E501
+    dividend = Money(dividends_amount, 'EUR')
+    expected_quotient = Money(expected_amount, 'EUR')
+
+    assert dividend / to_type(divisor) == expected_quotient
+
+
+@pytest.mark.parametrize('to_type', [int, Decimal])
+@pytest.mark.parametrize('dividend, divisors_amount, expected_amount', [
+    (10, 10, Decimal(1)),
+    (1, 10, Decimal(0.1)),
+    (5, 10, Decimal(0.5)),
+    (10, '100.1', Decimal('0.0999')),
+    (2, '5000.2', Decimal('0.0004')),
+    (333, '5678.9999', Decimal('0.0586')),
+    (10, '3.0000', Decimal('3.3333')),
+    (10, '6.0000', Decimal('1.6667')),
+    (10, '6.0001', Decimal('1.6666')),
+])
+def test_true_dividing_int_or_decimal_by_money_should_work_with_proper_rounding(to_type, dividend, divisors_amount, expected_amount):  # noqa: E501
+    divisor = Money(divisors_amount, 'EUR')
+    expected_quotient = Money(expected_amount, 'EUR')
+
+    assert to_type(dividend) / divisor == expected_quotient
+
+
+@pytest.mark.parametrize('to_type', [int, Decimal])
+@pytest.mark.parametrize('dividends_amount, divisor, expected_amount', [
+    (10, 1, Decimal(10)),
+    (10, 3, Decimal(3)),
+    (10, 5, Decimal(2)),
+    (10, 6, Decimal(1)),
+    ('11.9999', 3, Decimal(3)),
+])
+def test_floor_dividing_money_by_int_or_decimal_should_work_with_proper_rounding(to_type, dividends_amount, divisor, expected_amount):  # noqa: E501
+    dividend = Money(dividends_amount, 'EUR')
+    expected_quotient = Money(expected_amount, 'EUR')
+
+    assert dividend // to_type(divisor) == expected_quotient
+
+
+@pytest.mark.parametrize('to_type', [int, Decimal])
+@pytest.mark.parametrize('dividend, divisors_amount, expected_amount', [
+    (10, 10, Decimal(1)),
+    (1, 10, Decimal(0)),
+    (10, '5', Decimal('2')),
+    (10, '5.0001', Decimal('1')),
+])
+def test_floor_dividing_int_or_decimal_by_money_should_work_with_proper_rounding(to_type, dividend, divisors_amount, expected_amount):  # noqa: E501
+    divisor = Money(divisors_amount, 'EUR')
+    expected_quotient = Money(expected_amount, 'EUR')
+
+    assert to_type(dividend) // divisor == expected_quotient
+
+
+@pytest.mark.parametrize('operation', [
+    (lambda x, y: x / y),   # __truediv__
+    (lambda x, y: y / x),   # __rtruediv__
+    (lambda x, y: x // y),  # __floordiv__
+    (lambda x, y: y // x),  # __rfloordiv__
+])
+@pytest.mark.parametrize('other', [
+    10.0, 10.1145, [], {}, object(), None, '10', 'Bob', Money(1, 'USD'), Money(1, 'EUR')
+])
+def test_money_true_and_floor_dividing_should_not_work_with_instances_of_other_types_than_int_and_decimal(operation, other):  # noqa: E501
+    with pytest.raises(TypeError):
+        operation(Money(1, 'USD'), other)
+
+
 # --------------------------------- comparison operators ---------------------------------
 @pytest.mark.parametrize('operator', [
     eq, ne, lt, le, gt, ge

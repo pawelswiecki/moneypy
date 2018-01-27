@@ -124,3 +124,23 @@ class Money(BaseMoney):
 
     def __rmul__(self, other: Union[int, Decimal]) -> 'Money':
         return self.__mul__(other)
+
+    @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
+    def __truediv__(self, other: Union[int, Decimal]) -> 'Money':
+        amount = self._amount / other
+        return Money(amount, self._currency_code)
+
+    @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
+    def __rtruediv__(self, other: Union[int, Decimal]) -> 'Money':
+        amount = other / self._amount
+        return Money(amount, self._currency_code)
+
+    @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
+    def __floordiv__(self, other: Union[int, Decimal]) -> 'Money':
+        amount = self._amount // other
+        return Money(amount, self._currency_code)
+
+    @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
+    def __rfloordiv__(self, other: Union[int, Decimal]) -> 'Money':
+        amount = other // self._amount
+        return Money(amount, self._currency_code)
