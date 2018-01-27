@@ -124,18 +124,21 @@ def test_money_subtract_should_not_work_with_instances_of_other_types(non_money_
 
 
 # --------------------------------------- multiply ---------------------------------------
+@pytest.mark.parametrize('to_type', [int, Decimal])
 @pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
     (10, 0, Decimal(0)),
     (10, 1, Decimal(10)),
     (10, 10, Decimal(100)),
     ('10.01', 10, Decimal('100.1')),
     ('9999.9999', 2, Decimal('19999.9998')),
-    (10, Decimal(0), Decimal(0)),
-    (10, Decimal(1), Decimal(10)),
 ])
-def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work(money_amount, multiplier, expected_amount):  # noqa: E501
-    assert Money(money_amount, 'EUR') * multiplier == Money(expected_amount, 'EUR')
-    assert multiplier * Money(money_amount, 'EUR') == Money(expected_amount, 'EUR')
+def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work(to_type, money_amount, multiplier, expected_amount):  # noqa: E501
+    money_factor = Money(money_amount, 'EUR')
+    other_factor = to_type(multiplier)
+    expected_money = Money(expected_amount, 'EUR')
+
+    assert money_factor * other_factor == expected_money
+    assert other_factor * money_factor == expected_money
 
 
 @pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
@@ -146,7 +149,7 @@ def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work(money_
     (Decimal('9999.9999'), Decimal('0.1'), Decimal('1000.0000')),
     (Decimal('9999.9999'), Decimal('0.00001'), Decimal('0.1000')),
 ])
-def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
+def test_multiplying_with_factors_of_money_and_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
     assert Money(money_amount, 'GBP') * multiplier == Money(expected_amount, 'GBP')
     assert multiplier * Money(money_amount, 'GBP') == Money(expected_amount, 'GBP')
 
