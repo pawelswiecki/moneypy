@@ -133,7 +133,7 @@ def test_money_subtract_should_not_work_with_instances_of_other_types(non_money_
     (10, Decimal(0), Decimal(0)),
     (10, Decimal(1), Decimal(10)),
 ])
-def test_multiplying_money_instance_by_int_or_decimal_should_work(money_amount, multiplier, expected_amount):  # noqa: E501
+def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work(money_amount, multiplier, expected_amount):  # noqa: E501
     assert Money(money_amount, 'EUR') * multiplier == Money(expected_amount, 'EUR')
     assert multiplier * Money(money_amount, 'EUR') == Money(expected_amount, 'EUR')
 
@@ -146,15 +146,15 @@ def test_multiplying_money_instance_by_int_or_decimal_should_work(money_amount, 
     (Decimal('9999.9999'), Decimal('0.1'), Decimal('1000.0000')),
     (Decimal('9999.9999'), Decimal('0.00001'), Decimal('0.1000')),
 ])
-def test_multiplying_money_instance_by_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
+def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
     assert Money(money_amount, 'GBP') * multiplier == Money(expected_amount, 'GBP')
     assert multiplier * Money(money_amount, 'GBP') == Money(expected_amount, 'GBP')
 
 
 @pytest.mark.parametrize('other', [
-    10.0, 10.1123455, [], {}, object(), None, '10', 'Bob',
+    10.0, 10.11455, [], {}, object(), None, '10', 'Bob', Money(1, 'USD'), Money(2, 'EGP'),
 ])
-def test_money_multiplting_should_not_work_with_instances_of_other_types_than_int_and_decimal(other):  # noqa: E501
+def test_multiplying_with_factors_of_money_and_not_int_or_decimal_should_not_work(other):  # noqa: E501
     with pytest.raises(TypeError):
         Money(1, 'USD') * other
 
@@ -163,21 +163,28 @@ def test_money_multiplting_should_not_work_with_instances_of_other_types_than_in
 
 
 # --------------------------------- comparison operators ---------------------------------
-def test_money_comparison_operators_should_work_between_money_instances():
-    money100 = Money(100, 'EUR')
-    money200 = Money(200, 'EUR')
+@pytest.mark.parametrize('operator', [
+    eq, ne, lt, le, gt, ge
+])
+def test_money_comparison_operators_should_not_fail_between_money_instances_of_the_same_currency(operator):  # noqa: E501
+    money1 = Money(1, 'EUR')
+    money2 = Money(1, 'EUR')
 
-    assert money100 < money200
-    assert money200 > money100
+    try:
+        operator(money1, money2)
+    except IncompatibleCurrencyError as e:
+        pytest.fail(str(e))
 
-    assert money100 <= money200
-    assert money100 <= money100
-    assert money200 >= money100
-    assert money200 >= money200
 
-    assert money100 == money100
-    assert money100 != money200
-    assert money200 != money100
+@pytest.mark.parametrize('operator', [
+    eq, ne, lt, le, gt, ge
+])
+def test_money_comparison_operators_should_fail_between_money_instances_of_different_currencies(operator):  # noqa: E501
+    money1 = Money(1, 'EUR')
+    money2 = Money(1, 'USD')
+
+    with pytest.raises(IncompatibleCurrencyError):
+        operator(money1, money2)
 
 
 @pytest.mark.parametrize('non_money_object', [
@@ -186,8 +193,99 @@ def test_money_comparison_operators_should_work_between_money_instances():
 @pytest.mark.parametrize('operator', [
     eq, ne, lt, le, gt, ge
 ])
-def test_money_comparison_operators_should_not_work_with_instances_of_other_types(non_money_object, operator):  # noqa: E501
+def test_money_comparison_operators_should_fail_with_instances_of_other_types(non_money_object, operator):  # noqa: E501
     money = Money('10', 'USD')
 
     with pytest.raises(TypeError):
         operator(money, non_money_object)
+
+
+@pytest.mark.parametrize('amount', [
+    Decimal('0'),
+    Decimal('1'),
+    Decimal('10.1'),
+    Decimal('10.0001'),
+    Decimal('6543.9999'),
+    Decimal('-5464.2223'),
+])
+def test_eq(amount):
+    assert Money(amount, 'CHF') == Money(amount, 'CHF')
+
+
+@pytest.mark.parametrize('amount1, amount2', [
+    (Decimal('1'), Decimal('2')),
+    (Decimal('2'), Decimal('1')),
+    (Decimal('1'), Decimal('-1')),
+    (Decimal('-1'), Decimal('1')),
+    (Decimal('0'), Decimal('0.1')),
+    (Decimal('10.0000'), Decimal('10.0001')),
+    (Decimal('10.0000'), Decimal('9.9999')),
+    (Decimal('-501.0000'), Decimal('-500.9999')),
+    (Decimal('-501.0000'), Decimal('-501.0001')),
+])
+def test_ne(amount1, amount2):
+    assert amount1 != amount2
+    assert Money(amount1, 'CHF') != Money(amount2, 'CHF')
+
+
+@pytest.mark.parametrize('amount1, amount2', [
+    (Decimal('1'), Decimal('2')),
+    (Decimal('-1'), Decimal('1')),
+    (Decimal('-0.0001'), Decimal('0')),
+    (Decimal('0'), Decimal('0.0001')),
+    (Decimal('10.0000'), Decimal('10.0001')),
+    (Decimal('-501.0000'), Decimal('-500.9999')),
+])
+def test_lt(amount1, amount2):
+    assert amount1 < amount2
+    assert Money(amount1, 'CHF') < Money(amount2, 'CHF')
+    # double-check the inverse relation with the same data
+    assert not (Money(amount1, 'CHF') >= Money(amount2, 'CHF'))
+
+
+@pytest.mark.parametrize('amount1, amount2', [
+    (Decimal('1'), Decimal('2')),
+    (Decimal('1'), Decimal('1')),
+    (Decimal('-1'), Decimal('1')),
+    (Decimal('-1'), Decimal('-1')),
+    (Decimal('-0.0001'), Decimal('0')),
+    (Decimal('-0.0001'), Decimal('-0.0001')),
+])
+def test_lte(amount1, amount2):
+    assert amount1 <= amount2
+    assert Money(amount1, 'CHF') <= Money(amount2, 'CHF')
+    # double-check the inverse relation with the same data
+    assert not (Money(amount1, 'CHF') > Money(amount2, 'CHF'))
+
+
+@pytest.mark.parametrize('amount1, amount2', [
+    (Decimal('7000'), Decimal('6999')),
+    (Decimal('70000'), Decimal('0')),
+    (Decimal('0'), Decimal('-0.0001')),
+    (Decimal('0.0001'), Decimal('0')),
+    (Decimal('10.0001'), Decimal('10.0000')),
+    (Decimal('-420000'), Decimal('-420000.0001')),
+])
+def test_gt(amount1, amount2):
+    assert amount1 > amount2
+    assert Money(amount1, 'DKK') > Money(amount2, 'DKK')
+    # double-check the inverse relation with the same data
+    assert not (Money(amount1, 'DKK') <= Money(amount2, 'DKK'))
+
+
+@pytest.mark.parametrize('amount1, amount2', [
+    (Decimal('7000'), Decimal('6999')),
+    (Decimal('7000'), Decimal('7000')),
+    (Decimal('70000'), Decimal('0')),
+    (Decimal('70000'), Decimal('70000')),
+    (Decimal('0'), Decimal('-0.0001')),
+    (Decimal('0'), Decimal('0')),
+    (Decimal('0.0001'), Decimal('0')),
+    (Decimal('-420000'), Decimal('-420000.0001')),
+    (Decimal('-420000'), Decimal('-420000')),
+])
+def test_ge(amount1, amount2):
+    assert amount1 >= amount2
+    assert Money(amount1, 'DKK') >= Money(amount2, 'DKK')
+    # double-check the inverse relation with the same data
+    assert not (Money(amount1, 'DKK') < Money(amount2, 'DKK'))
