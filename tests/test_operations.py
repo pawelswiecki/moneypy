@@ -7,6 +7,8 @@ from exceptions import IncompatibleCurrencyError
 from money import Money
 
 
+# =================================== TEST CONVERTERS ====================================
+
 @pytest.mark.parametrize('amount, expected', [
     (-10, True),
     (0, False),
@@ -42,6 +44,8 @@ def test_money_hash__two_different_instances_of_money_should_have_different_hash
     )
 
 
+# ================================= TEST UNARY OPERATORS =================================
+
 def test_money_neg():
     assert -Money(1, 'PLN').amount == Decimal('-1')
     assert -Money(-1, 'PLN').amount == Decimal('1')
@@ -54,6 +58,9 @@ def test_money_pos():
     assert +Money(0, 'PLN').amount == Decimal('0')
 
 
+# ================================ TEST BINARY OPERATORS =================================
+
+# ----------------------------------------- add ------------------------------------------
 @pytest.mark.parametrize('amount1, amount2, expected', [
     (10, 20, Decimal('30')),
     (0, 22, Decimal('22')),
@@ -84,6 +91,7 @@ def test_money_add_should_not_work_with_instances_of_other_types(non_money_objec
         non_money_object + money
 
 
+# --------------------------------------- subtract ---------------------------------------
 @pytest.mark.parametrize('amount1, amount2, expected', [
     (100, 25, Decimal('75')),
     (30, 30, Decimal('0')),
@@ -115,36 +123,7 @@ def test_money_subtract_should_not_work_with_instances_of_other_types(non_money_
         non_money_object - money
 
 
-def test_money_comparison_operators_should_work_between_money_instances():
-    money100 = Money(100, 'EUR')
-    money200 = Money(200, 'EUR')
-
-    assert money100 < money200
-    assert money200 > money100
-
-    assert money100 <= money200
-    assert money100 <= money100
-    assert money200 >= money100
-    assert money200 >= money200
-
-    assert money100 == money100
-    assert money100 != money200
-    assert money200 != money100
-
-
-@pytest.mark.parametrize('non_money_object', [
-    10, 10.0, '10', Decimal('10'), [10], object(), None, False,
-])
-@pytest.mark.parametrize('operator', [
-    eq, ne, lt, le, gt, ge
-])
-def test_money_comparison_operators_should_not_work_with_instances_of_other_types(non_money_object, operator):  # noqa: E501
-    money = Money('10', 'USD')
-
-    with pytest.raises(TypeError):
-        operator(money, non_money_object)
-
-
+# --------------------------------------- multiply ---------------------------------------
 @pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
     (10, 0, Decimal(0)),
     (10, 1, Decimal(10)),
@@ -181,3 +160,34 @@ def test_money_multiplting_should_not_work_with_instances_of_other_types_than_in
 
     with pytest.raises(TypeError):
         other * Money(1, 'USD')
+
+
+# --------------------------------- comparison operators ---------------------------------
+def test_money_comparison_operators_should_work_between_money_instances():
+    money100 = Money(100, 'EUR')
+    money200 = Money(200, 'EUR')
+
+    assert money100 < money200
+    assert money200 > money100
+
+    assert money100 <= money200
+    assert money100 <= money100
+    assert money200 >= money100
+    assert money200 >= money200
+
+    assert money100 == money100
+    assert money100 != money200
+    assert money200 != money100
+
+
+@pytest.mark.parametrize('non_money_object', [
+    10, 10.0, '10', Decimal('10'), [10], object(), None, False,
+])
+@pytest.mark.parametrize('operator', [
+    eq, ne, lt, le, gt, ge
+])
+def test_money_comparison_operators_should_not_work_with_instances_of_other_types(non_money_object, operator):  # noqa: E501
+    money = Money('10', 'USD')
+
+    with pytest.raises(TypeError):
+        operator(money, non_money_object)
