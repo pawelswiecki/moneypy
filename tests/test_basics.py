@@ -2,8 +2,8 @@ from decimal import Decimal
 
 import pytest
 
-from exceptions import MalformattedCurrencyCodeError
-from money import Money
+from moneypy.exceptions import MalformattedCurrencyCodeError
+from moneypy.money import Money
 
 
 @pytest.mark.parametrize('amount, currency, expected_amount', [

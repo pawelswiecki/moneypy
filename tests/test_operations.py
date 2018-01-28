@@ -3,8 +3,8 @@ from operator import eq, ne, lt, le, gt, ge
 
 import pytest
 
-from exceptions import IncompatibleCurrencyError
-from money import Money
+from moneypy.exceptions import IncompatibleCurrencyError
+from moneypy.money import Money
 
 
 # =================================== TEST CONVERTERS ====================================

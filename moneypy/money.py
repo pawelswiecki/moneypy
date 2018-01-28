@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import Union
 
-from decorators import validate_other_is, validate_same_currencies
-from exceptions import MalformattedCurrencyCodeError
-from messages import (
+from .decorators import validate_other_is, validate_same_currencies
+from .exceptions import MalformattedCurrencyCodeError
+from .messages import (
     CONVERT_INFO,
     MALFORMATTED_CURRENCY_CODE_MESSAGE,
     NON_STRING_CURRENCY_MESSAGE,

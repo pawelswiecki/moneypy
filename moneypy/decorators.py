@@ -1,8 +1,8 @@
 from collections import Iterable
 from functools import wraps
 
-from exceptions import IncompatibleCurrencyError
-from messages import TYPE_ERROR_MESSAGE, INCOMPATIBLE_CURRENCY_MESSAGE
+from .exceptions import IncompatibleCurrencyError
+from .messages import TYPE_ERROR_MESSAGE, INCOMPATIBLE_CURRENCY_MESSAGE
 
 
 def validate_other_is(others_type, op_name, add_info=''):
