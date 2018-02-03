@@ -9,7 +9,6 @@ from .messages import (
     NON_STRING_CURRENCY_MESSAGE,
 )
 
-PRECISION = '.0001'
 ConvToDecimal = Union[Decimal, int, float, str]
 
 
@@ -19,8 +18,9 @@ class BaseMoney:
 
 class Money(BaseMoney):
 
-    def __init__(self, amount: ConvToDecimal, currency: str) -> None:
-        self._amount: Decimal = self._to_decimal(amount)
+    def __init__(
+            self, amount: ConvToDecimal, currency: str, precision: str='.0001') -> None:
+        self._amount: Decimal = self._to_decimal(amount, precision)
         self._currency_code: str = self._validate_currency_code(currency)
 
     # public properties
@@ -33,11 +33,11 @@ class Money(BaseMoney):
         return self._currency_code
 
     # to Decimal conversion
-    def _to_decimal(self, amount: ConvToDecimal) -> Decimal:
-        return self._quantize(Decimal(amount))
+    def _to_decimal(self, amount: ConvToDecimal, precision: str) -> Decimal:
+        return self._quantize(Decimal(amount), precision)
 
-    def _quantize(self, amount: Decimal) -> Decimal:
-        return amount.quantize(Decimal(PRECISION))
+    def _quantize(self, amount: Decimal, precision: str) -> Decimal:
+        return amount.quantize(Decimal(precision))
 
     # currency code validation
     def _validate_currency_code(self, currency_code) -> str:
