@@ -80,7 +80,7 @@ class Money(BaseMoney):
     @validate_other_is(BaseMoney, 'add')
     @validate_same_currencies('add')
     def __add__(self, other: 'Money') -> 'Money':
-        return Money(self._amount + other._amount, self._currency_code)
+        return Money(self._amount + other.amount, self._currency_code)
 
     @validate_other_is(BaseMoney, 'subtract')
     @validate_same_currencies('subtract')
@@ -90,32 +90,32 @@ class Money(BaseMoney):
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __eq__(self, other: 'Money') -> bool:
-        return self._amount == other._amount
+        return self._amount == other.amount
 
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __ne__(self, other: 'Money') -> bool:
-        return self._amount != other._amount
+        return self._amount != other.amount
 
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __lt__(self, other: 'Money') -> bool:
-        return self._amount < other._amount
+        return self._amount < other.amount
 
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __le__(self, other: 'Money') -> bool:
-        return self._amount <= other._amount
+        return self._amount <= other.amount
 
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __gt__(self, other: 'Money') -> bool:
-        return self._amount > other._amount
+        return self._amount > other.amount
 
     @validate_other_is(BaseMoney, 'compare')
     @validate_same_currencies('compare')
     def __ge__(self, other: 'Money') -> bool:
-        return self._amount >= other._amount
+        return self._amount >= other.amount
 
     @validate_other_is([int, Decimal], 'multiply', CONVERT_INFO)
     def __mul__(self, other: Union[int, Decimal]) -> 'Money':

@@ -33,7 +33,7 @@ def validate_same_currencies(op_name):
         @wraps(function)
         def func_wrapper(self_object, other_object):
             cur1 = self_object._currency_code
-            cur2 = other_object._currency_code
+            cur2 = other_object.currency
             if cur1 != cur2:
                 raise IncompatibleCurrencyError(INCOMPATIBLE_CURRENCY_MESSAGE(
                     c1=cur1, c2=cur2, op=op_name)
