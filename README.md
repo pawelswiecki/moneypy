@@ -23,15 +23,15 @@ str` (currency code: three uppercase letters):
 >>> from moneypy import Money
 
 >>> Money(10, 'EUR')
-Money(amount='10.0000', currency='EUR')
+Money(amount='10.00', currency='EUR')
 
 >>> Money('30.1234', 'USD')
-Money(amount='30.1234', currency='USD')
+Money(amount='30.12', currency='USD')
 
 ```
 
-Mind that `amount` is stored with four decimal places precision. This is a subject to
-change and will be customised, see **Plans** section below.
+Mind that `amount` is stored with two decimal places precision by default. See
+**Precision and Rounding** below for more information.
 
 You cannot instantiate `Money` with `amount` that is not Decimal or not convertible to
 Decimal:
@@ -126,16 +126,65 @@ TypeError: cannot multiply 'Money' and 'float', convert to 'int' or 'Decimal' fi
 
 ```
 
+### Precision and Rounding
+
+#### Precision
+
+##### Default precision
+
+By default amounts stored in `Money` objects are stored with two decimal points precision.
+
+##### User-controlled precision
+
+While instantiating `Money` object you can optionally pass third parameter: `precision:
+Union[Decimal, int, float, str]` (Decimal and everything convertible into it). Money's
+amount will be rounded with the same precision as `precision`. For instance:
+
+```Python console
+>>> Money('10.123', 'EUR', '.1')
+Money(amount='10.1', currency='EUR')
+```
+
+`'.1'` has precision of one decimal place, so amount of resulting `Money` object has the
+same precision. Making the precision higher than amount's one is also possible:
+
+```Python console
+>>> Money('0.1', 'USD', '.00001')
+Money(amount='0.10000', currency='USD')
+```
+
+##### Precision rules
+
+All `Decimal` precision and rounding rules apply to amounts of `Money` objects (see
+[Python docs](https://docs.python.org/3/library/decimal.html) for details) with one
+exception -- when `Money` object is involved in division or multiplication the
+precision of the resulting `Money` object is the same as the precision of the initial one.
+
+```Python console
+
+>>> Money('10.10', 'CAD') * Decimal('1.0001')
+Money(amount='10.10', currency='CAD')
+
+>>> Decimal('1.000001') / Money('10.00', 'CAD')
+Money(amount='0.10', currency='CAD')
+```
+
+This way initially defined precision won't get lost. NOTE: **this rule is provisional**.
+It's still to be decided if it actually makes sense in the real use-cases.
+
+#### Rounding
+
+TODO
+
 ### `Money` objects are designed to be immutable and are hashable
 
 TODO
 
 ## Plans
 
-* Release on PyPI and start to version with changelog.
+* Make rounding configurable.
 
-* Make decimal precision and rounding method configurable. Right now the library uses
-quite arbitrarily chosen four-digit decimal precision and Decimal-default rounding method.
+* Release on PyPI and start to version with changelog.
 
 * Add currency formatting for international standards.
 

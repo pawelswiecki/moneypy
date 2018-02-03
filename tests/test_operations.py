@@ -35,7 +35,7 @@ def test_money_hash__two_identical_instances_of_money_should_have_the_same_hash(
 
 @pytest.mark.parametrize('money1, money2', [
     (Money('10', 'ABC'), Money('10', 'ABX')),
-    (Money('10.0000', 'GBP'), Money('10.0001', 'GBP')),
+    (Money('10.0000', 'GBP', '.0000'), Money('10.0001', 'GBP', '.0000')),
     (Money('10', 'GBP'), Money('-10', 'GBP')),
 ])
 def test_money_hash__two_different_instances_of_money_should_have_different_hashes(money1, money2):  # noqa: E501
@@ -141,17 +141,24 @@ def test_multiplying_with_factors_of_money_and_int_or_decimal_should_work(to_typ
     assert other_factor * money_factor == expected_money
 
 
-@pytest.mark.parametrize('money_amount, multiplier, expected_amount', [
-    (Decimal(10), Decimal('10.1111'), Decimal('101.1110')),
-    (Decimal(10), Decimal('10.111111'), Decimal('101.1111')),
-    (Decimal('10.1234'), Decimal('10.1234'), Decimal('102.4832')),
-    (Decimal('9999.9999'), Decimal('1.0'), Decimal('9999.9999')),
-    (Decimal('9999.9999'), Decimal('0.1'), Decimal('1000.0000')),
-    (Decimal('9999.9999'), Decimal('0.00001'), Decimal('0.1000')),
+@pytest.mark.parametrize('money_amount, multiplier, expected_amount, precision', [
+    (Decimal(10), Decimal('10.1111'), Decimal('101.1110'), '.0000'),
+    (Decimal(10), Decimal('10.111111'), Decimal('101.1111'), '.0000'),
+    (Decimal('10.1234'), Decimal('10.1234'), Decimal('102.4832'), '.0000'),
+    (Decimal('9999.9999'), Decimal('1.0'), Decimal('9999.9999'), '.0000'),
+    (Decimal('9999.9999'), Decimal('0.1'), Decimal('1000.0000'), '.0000'),
+    (Decimal('9999.9999'), Decimal('0.00001'), Decimal('0.1000'), '.0000'),
 ])
-def test_multiplying_with_factors_of_money_and_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount):  # noqa: E501
-    assert Money(money_amount, 'GBP') * multiplier == Money(expected_amount, 'GBP')
-    assert multiplier * Money(money_amount, 'GBP') == Money(expected_amount, 'GBP')
+def test_multiplying_with_factors_of_money_and_decimal_should_work_with_proper_rounding(money_amount, multiplier, expected_amount, precision):  # noqa: E501
+    assert (
+        Money(money_amount, 'GBP', precision) * multiplier
+        ==
+        Money(expected_amount, 'GBP', precision)
+    )
+    assert (
+        multiplier * Money(money_amount, 'GBP', precision)
+        == Money(expected_amount, 'GBP', precision)
+    )
 
 
 @pytest.mark.parametrize('other', [
@@ -206,31 +213,33 @@ def test_true_dividing_int_or_decimal_by_money_should_work_with_proper_rounding(
 
 
 @pytest.mark.parametrize('to_type', [int, Decimal])
-@pytest.mark.parametrize('dividends_amount, divisor, expected_amount', [
-    (10, 1, Decimal(10)),
-    (10, 3, Decimal(3)),
-    (10, 5, Decimal(2)),
-    (10, 6, Decimal(1)),
-    ('11.9999', 3, Decimal(3)),
+@pytest.mark.parametrize('dividends_amount, divisor, expected_amount, precision', [
+    (10, 1, Decimal(10), '.00'),
+    (10, 3, Decimal(3), '.00'),
+    (10, 5, Decimal(2), '.00'),
+    (10, 6, Decimal(1), '.00'),
+    ('11.9999', 3, Decimal(4), '.00'),
+    ('11.9999', 3, Decimal(4), '.000'),
+    ('11.9999', 3, Decimal(3), '.0000'),
 ])
-def test_floor_dividing_money_by_int_or_decimal_should_work_with_proper_rounding(to_type, dividends_amount, divisor, expected_amount):  # noqa: E501
-    dividend = Money(dividends_amount, 'EUR')
-    expected_quotient = Money(expected_amount, 'EUR')
+def test_floor_dividing_money_by_int_or_decimal_should_work_with_proper_rounding(to_type, dividends_amount, divisor, expected_amount, precision):  # noqa: E501
+    dividend = Money(dividends_amount, 'EUR', precision)
+    expected_quotient = Money(expected_amount, 'EUR', precision)
 
     assert dividend // to_type(divisor) == expected_quotient
 
 
 @pytest.mark.parametrize('to_type', [int, Decimal])
-@pytest.mark.parametrize('dividend, divisors_amount, expected_amount', [
-    (10, 10, Decimal(1)),
-    (1, 10, Decimal(0)),
-    (10, '5', Decimal('2')),
-    (10, '5.0001', Decimal('1')),
+@pytest.mark.parametrize('dividend, divisors_amount, expected_amount, precision', [
+    (10, 10, Decimal(1), '.00'),
+    (1, 10, Decimal(0), '.00'),
+    (10, '5', Decimal('2'), '.00'),
+    (10, '5.01', Decimal('1'), '.00'),
+    (10, '5.0001', Decimal('1'), '.0000'),
 ])
-def test_floor_dividing_int_or_decimal_by_money_should_work_with_proper_rounding(to_type, dividend, divisors_amount, expected_amount):  # noqa: E501
-    divisor = Money(divisors_amount, 'EUR')
-    expected_quotient = Money(expected_amount, 'EUR')
-
+def test_floor_dividing_int_or_decimal_by_money_should_work_with_proper_rounding(to_type, dividend, divisors_amount, expected_amount, precision):  # noqa: E501
+    divisor = Money(divisors_amount, 'EUR', precision)
+    expected_quotient = Money(expected_amount, 'EUR', precision)
     assert to_type(dividend) // divisor == expected_quotient
 
 
@@ -298,35 +307,35 @@ def test_eq(amount):
     assert Money(amount, 'CHF') == Money(amount, 'CHF')
 
 
-@pytest.mark.parametrize('amount1, amount2', [
-    (Decimal('1'), Decimal('2')),
-    (Decimal('2'), Decimal('1')),
-    (Decimal('1'), Decimal('-1')),
-    (Decimal('-1'), Decimal('1')),
-    (Decimal('0'), Decimal('0.1')),
-    (Decimal('10.0000'), Decimal('10.0001')),
-    (Decimal('10.0000'), Decimal('9.9999')),
-    (Decimal('-501.0000'), Decimal('-500.9999')),
-    (Decimal('-501.0000'), Decimal('-501.0001')),
+@pytest.mark.parametrize('amount1, amount2, precision', [
+    (Decimal('1'), Decimal('2'), '.00'),
+    (Decimal('2'), Decimal('1'), '.00'),
+    (Decimal('1'), Decimal('-1'), '.00'),
+    (Decimal('-1'), Decimal('1'), '.00'),
+    (Decimal('0'), Decimal('0.1'), '.00'),
+    (Decimal('10.0000'), Decimal('10.0001'), '.0000'),
+    (Decimal('10.0000'), Decimal('9.9999'), '.0000'),
+    (Decimal('-501.0000'), Decimal('-500.9999'), '.0000'),
+    (Decimal('-501.0000'), Decimal('-501.0001'), '.0000'),
 ])
-def test_ne(amount1, amount2):
+def test_ne(amount1, amount2, precision):
     assert amount1 != amount2
-    assert Money(amount1, 'CHF') != Money(amount2, 'CHF')
+    assert Money(amount1, 'CHF', precision) != Money(amount2, 'CHF', precision)
 
 
-@pytest.mark.parametrize('amount1, amount2', [
-    (Decimal('1'), Decimal('2')),
-    (Decimal('-1'), Decimal('1')),
-    (Decimal('-0.0001'), Decimal('0')),
-    (Decimal('0'), Decimal('0.0001')),
-    (Decimal('10.0000'), Decimal('10.0001')),
-    (Decimal('-501.0000'), Decimal('-500.9999')),
+@pytest.mark.parametrize('amount1, amount2, precision', [
+    (Decimal('1'), Decimal('2'), '.00'),
+    (Decimal('-1'), Decimal('1'), '.00'),
+    (Decimal('-0.0001'), Decimal('0'), '.0000'),
+    (Decimal('0'), Decimal('0.0001'), '.0000'),
+    (Decimal('10.0000'), Decimal('10.0001'), '.0000'),
+    (Decimal('-501.0000'), Decimal('-500.9999'), '.0000'),
 ])
-def test_lt(amount1, amount2):
+def test_lt(amount1, amount2, precision):
     assert amount1 < amount2
-    assert Money(amount1, 'CHF') < Money(amount2, 'CHF')
+    assert Money(amount1, 'CHF', precision) < Money(amount2, 'CHF', precision)
     # double-check the inverse relation with the same data
-    assert not (Money(amount1, 'CHF') >= Money(amount2, 'CHF'))
+    assert not (Money(amount1, 'CHF', precision) >= Money(amount2, 'CHF', precision))
 
 
 @pytest.mark.parametrize('amount1, amount2', [
@@ -344,19 +353,19 @@ def test_lte(amount1, amount2):
     assert not (Money(amount1, 'CHF') > Money(amount2, 'CHF'))
 
 
-@pytest.mark.parametrize('amount1, amount2', [
-    (Decimal('7000'), Decimal('6999')),
-    (Decimal('70000'), Decimal('0')),
-    (Decimal('0'), Decimal('-0.0001')),
-    (Decimal('0.0001'), Decimal('0')),
-    (Decimal('10.0001'), Decimal('10.0000')),
-    (Decimal('-420000'), Decimal('-420000.0001')),
+@pytest.mark.parametrize('amount1, amount2, precision', [
+    (Decimal('7000'), Decimal('6999'), '.00'),
+    (Decimal('70000'), Decimal('0'), '.00'),
+    (Decimal('0'), Decimal('-0.0001'), '.0000'),
+    (Decimal('0.0001'), Decimal('0'), '.0000'),
+    (Decimal('10.0001'), Decimal('10.0000'), '.0000'),
+    (Decimal('-420000'), Decimal('-420000.0001'), '.0000'),
 ])
-def test_gt(amount1, amount2):
+def test_gt(amount1, amount2, precision):
     assert amount1 > amount2
-    assert Money(amount1, 'DKK') > Money(amount2, 'DKK')
+    assert Money(amount1, 'DKK', precision) > Money(amount2, 'DKK', precision)
     # double-check the inverse relation with the same data
-    assert not (Money(amount1, 'DKK') <= Money(amount2, 'DKK'))
+    assert not (Money(amount1, 'DKK', precision) <= Money(amount2, 'DKK', precision))
 
 
 @pytest.mark.parametrize('amount1, amount2', [

@@ -7,10 +7,10 @@ from moneypy.money import Money
 
 
 @pytest.mark.parametrize('amount, currency, expected_amount', [
-    (Decimal('11.0001'), 'XYZ', Decimal('11.0001')),
+    (Decimal('11.00'), 'XYZ', Decimal('11.00')),
     (10, 'EUR', Decimal('10.0000')),
     (35.1, 'USD', Decimal('35.1000')),
-    ('99.1234', 'XYZ', Decimal('99.1234')),
+    ('99.12', 'XYZ', Decimal('99.12')),
 ])
 def test_money_properties(amount, currency, expected_amount):
     money = Money(amount, currency)
@@ -18,28 +18,30 @@ def test_money_properties(amount, currency, expected_amount):
     assert money.currency == currency
 
 
-@pytest.mark.parametrize('amount, expected_amount', [
-    ('1', Decimal('1.0000')),
-    ('1.11111', Decimal('1.1111')),
-    ('1.55555', Decimal('1.5556')),
-    ('1.99999', Decimal('2.0000')),
+@pytest.mark.parametrize('amount, precision, expected_amount', [
+    ('1.11111', '.00', Decimal('1.11')),
+    ('1.11111', '.0000', Decimal('1.1111')),
+    ('1.55555', '.00', Decimal('1.56')),
+    ('1.55555', '.0000', Decimal('1.5556')),
+    ('1.99999', '.00', Decimal('2.00')),
+    ('1.99999', '.0000', Decimal('2.0000')),
 ])
-def test_money_amount_round(amount, expected_amount):
-    money = Money(amount, 'GBP')
+def test_money_amount_round(amount, precision, expected_amount):
+    money = Money(amount, 'GBP', precision)
     assert money.amount == expected_amount
 
 
 @pytest.mark.parametrize('amount, currency, expected', [
-    ('100.1', 'EUR', "Money(amount='100.1000', currency='EUR')"),
-    ('99.1234', 'ABC', "Money(amount='99.1234', currency='ABC')"),
+    ('100.1', 'EUR', "Money(amount='100.10', currency='EUR')"),
+    ('99.12', 'ABC', "Money(amount='99.12', currency='ABC')"),
 ])
 def test_money_repr(amount, currency, expected):
     assert repr(Money(amount, currency)) == expected
 
 
 @pytest.mark.parametrize('amount, currency, expected', [
-    ('100.1', 'EUR', '100.1000 EUR'),
-    ('99.1234', 'ABC', '99.1234 ABC'),
+    ('100.1', 'EUR', '100.10 EUR'),
+    ('99.1234', 'ABC', '99.12 ABC'),
 ])
 def test_money_str(amount, currency, expected):
     assert str(Money(amount, currency)) == expected

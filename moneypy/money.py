@@ -19,7 +19,9 @@ class BaseMoney:
 class Money(BaseMoney):
 
     def __init__(
-            self, amount: ConvToDecimal, currency: str, precision: str='.0001') -> None:
+            self, amount: ConvToDecimal, currency: str,
+            precision: ConvToDecimal='.00',
+    ) -> None:
         self._amount: Decimal = self._to_decimal(amount, precision)
         self._currency_code: str = self._validate_currency_code(currency)
 
@@ -33,10 +35,10 @@ class Money(BaseMoney):
         return self._currency_code
 
     # to Decimal conversion
-    def _to_decimal(self, amount: ConvToDecimal, precision: str) -> Decimal:
+    def _to_decimal(self, amount: ConvToDecimal, precision: ConvToDecimal) -> Decimal:
         return self._quantize(Decimal(amount), precision)
 
-    def _quantize(self, amount: Decimal, precision: str) -> Decimal:
+    def _quantize(self, amount: Decimal, precision: ConvToDecimal) -> Decimal:
         return amount.quantize(Decimal(precision))
 
     # currency code validation
@@ -80,7 +82,11 @@ class Money(BaseMoney):
     @validate_other_is(BaseMoney, 'add')
     @validate_same_currencies('add')
     def __add__(self, other: 'Money') -> 'Money':
-        return Money(self._amount + other.amount, self._currency_code)
+        return Money(
+            amount=self._amount + other.amount,
+            currency=self._currency_code,
+            precision=self._amount + other.amount,
+        )
 
     @validate_other_is(BaseMoney, 'subtract')
     @validate_same_currencies('subtract')
@@ -120,7 +126,7 @@ class Money(BaseMoney):
     @validate_other_is([int, Decimal], 'multiply', CONVERT_INFO)
     def __mul__(self, other: Union[int, Decimal]) -> 'Money':
         amount = self._amount * other
-        return Money(amount, self._currency_code)
+        return Money(amount, self._currency_code, precision=self._amount)
 
     def __rmul__(self, other: Union[int, Decimal]) -> 'Money':
         return self.__mul__(other)
@@ -128,19 +134,19 @@ class Money(BaseMoney):
     @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
     def __truediv__(self, other: Union[int, Decimal]) -> 'Money':
         amount = self._amount / other
-        return Money(amount, self._currency_code)
+        return Money(amount, self._currency_code, precision=self._amount)
 
     @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
     def __rtruediv__(self, other: Union[int, Decimal]) -> 'Money':
         amount = other / self._amount
-        return Money(amount, self._currency_code)
+        return Money(amount, self._currency_code, precision=self._amount)
 
     @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
     def __floordiv__(self, other: Union[int, Decimal]) -> 'Money':
         amount = self._amount // other
-        return Money(amount, self._currency_code)
+        return Money(amount, self._currency_code, precision=self._amount)
 
     @validate_other_is([int, Decimal], 'divide', CONVERT_INFO)
     def __rfloordiv__(self, other: Union[int, Decimal]) -> 'Money':
         amount = other // self._amount
-        return Money(amount, self._currency_code)
+        return Money(amount, self._currency_code, precision=self._amount)
